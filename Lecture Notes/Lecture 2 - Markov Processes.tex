@@ -1,0 +1,67 @@
+\documentclass[11pt]{article}
+
+% Load package
+\usepackage{lesson}
+
+% Set title and course name
+\settitle{Lecture 2}
+\setsubtitle{Markov Processes and Markov Reward Processes}
+\setcourse{CME241 - Reinforcement Learning for Finance}
+\setdate{13.01.2023}
+
+\begin{document}
+
+% Create title and add proper header for first page
+\maketitle
+\thispagestyle{first}
+
+\section*{Markov Process}
+A Markov Porcess consists of:
+\begin{itemize}
+    \item A countable set of States $\mathcal{S} $ (State Space) and a set $\mathcal{T}\subseteq \mathcal{S}$ (Terminal States)
+    \item A time-indexed sequence of random states $S_t \in \mathcal{S}$ for time sets $t = 0, 1, 2,...$ with each state transition satisfying the Markov Property: $ \mathbb{P} [S_{t+1}| S_t, S_{t-1}, ..., S_0] = \mathbb{P}[S_{t+1}|S_t]$ for all $t \geq 0$
+    \item Termination: If an outcome for $S_T$ (for some time step $T$) is a state in the set $\mathcal{T}$, the this sequence outcome terminates at time step $T$.
+\end{itemize}
+
+\paragraph*{Stationary Distribution} The stationary distribution of a (Time-Homogenous) Markov Process with state space $\mathcal{S} = \mathcal{N}$ and a transition probability function $\mathcal{P} : \mathcal{N}\times\mathcal{N}\rightarrow[0, 1]$ is a probability distribution function $\pi:\mathcal{N}\rightarrow[0,1]$ such that: 
+$$
+\pi(s) = \sum_{s'\in\mathcal{N}}\pi(s)\cdot \mathcal{P}(s, s') \text{ for all } s \in \mathcal{N}
+$$
+\paragraph*{Markov Reward Process}
+A Markov Reward Process is a Markov Process, along with a time-indexed sequence of \textit{Reward} random variables $R_t \in \mathcal{D}$  (a countable subset of $\mathbb{R}$) for time steps $t = 1, 2, ...$ satisfying the Markov Property (including Rewards): $\mathbb{P}[(R_{t+1}, S_{t+1})|S_t, S_{t-1}, ..., S_0] = \mathbb{P}[(R_{t+1}, S_{t+1})|S_t]$ for all $t \geq 0$.
+
+The reward transition function $\mathcal{R}_T: \mathcal{N} \times \mathcal{S} \rightarrow \mathbb{R}$ is defined as:
+$$
+\mathcal{R}_T\left(s, s^{\prime}\right)=\mathbb{E}\left[R_{t+1} \mid S_{t+1}=s^{\prime}, S_t=s\right]
+$$
+$$
+=\sum_{r \in \mathcal{D}} \frac{\mathcal{P}_R\left(s, r, s^{\prime}\right)}{\mathcal{P}\left(s, s^{\prime}\right)} \cdot r=\sum_{r \in \mathcal{D}} \frac{\mathcal{P}_R\left(s, r, s^{\prime}\right)}{\sum_{r \in \mathcal{D}} \mathcal{P}_R\left(s, r, s^{\prime}\right)} \cdot r
+$$
+
+The reward function $\mathcal{R}: \mathcal{N}\rightarrow\mathbb{R}$ is defined as:
+$$
+\mathcal{R}(s)=\mathbb{E}\left[R_{t+1} \mid S_t=s\right]
+$$
+$$
+=\sum_{s^{\prime} \in \mathcal{S}} \mathcal{P}\left(s, s^{\prime}\right) \cdot \mathcal{R}_T\left(s, s^{\prime}\right)=\sum_{s^{\prime} \in \mathcal{S}} \sum_{r \in \mathcal{D}} \mathcal{P}_R\left(s, r, s^{\prime}\right) \cdot r
+$$
+
+\paragraph*{Value Function of MRP}
+This identifies states with high "expected accumulated discounted rewards".
+The Value Function $\mathcal{V}: \mathcal{N}\rightarrow\mathbb{R}$ is defined as:
+$$
+V(s)=\mathbb{E}\left[G_t \mid S_t=s\right] \text { for all } s \in \mathcal{N} \text {, for all } t=0,1,2, \ldots
+$$
+The Bellman equation for the MRP (based on the recursion $G_t = R_{t+1}+\gamma \cdot G_{t+1}$):
+$$
+V(s)=\mathcal{R}(s)+\gamma \cdot \sum_{s^{\prime} \in \mathcal{N}} \mathcal{P}\left(s, s^{\prime}\right) \cdot V\left(s^{\prime}\right) \text { for all } s \in \mathcal{N}
+$$
+This can be written in Linear Algebra form as:
+$$
+\mathbf{V} =\boldsymbol{\mathcal{R}}+\gamma \boldsymbol{\mathcal{P}} \cdot \mathbf{V} 
+$$
+$$
+\Rightarrow \mathbf{V}=\left(\mathbf{I}_m-\gamma \boldsymbol{\mathcal{P}}\right)^{-1} \cdot \boldsymbol{\mathcal{R}}
+$$
+
+\end{document}

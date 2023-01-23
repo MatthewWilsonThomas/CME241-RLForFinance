@@ -1,0 +1,193 @@
+\documentclass[11pt]{article}
+
+% Load package
+\usepackage{lesson}
+
+% Set title and course name
+\settitle{Lecture 4}
+\setsubtitle{Gynamic Programming}
+\setcourse{CME241 - Reinforcement Learning for Finance}
+\setdate{20.01.2023}
+
+\begin{document}
+
+% Create title and add proper header for first page
+\maketitle
+\thispagestyle{first}
+
+\subsection*{Dynamic Programming}
+All the Dynamic Programming algorithms are build on the concept of Fixed-Points
+
+\paragraph*{Fixed-Points}
+The fixed-point of a function $f:\chi\rightarrow\chi$ (for some arbitrary domain $\chi$) is a value $x\in\chi$ s.t. $x = f(x)$.
+
+Some algorithms have multiple fixed-points, some have none. The DP algorithms are based on functions with a unique fixed-point. 
+
+To be certain that we have a unique fixed-point we rely on the Banach Fixed-Point Theorem.
+\paragraph*{Banach Fixed-Point Theorem}
+Let $\chi$ be a non-empty set equipped with a complete metric $d:\chi\times\chi\rightarrow\mathbb{R}$. Let $f:\chi\rightarrow\chi$ be s.t. there exists an $L\in[0, 1)$ s.t. $d(f(x_1), f(x_2))\leq L\cdot d(x_1, x_2)\quad\forall x_1, x_2\in \chi$. Then:
+\begin{itemize}
+    \item There exists a unique fixed-point $x^*\in\chi$, i.e. $x^* = f(x^*)$.
+    \item For any $x_0\in\chi$ and sequence $[x_i|i = 0, 1, 2, ...]$ defined as $x_{i+1} = f(x_i)$ for all $i = 0, 1, 2, ...$:
+    $$
+    \lim_{i\rightarrow\infty} x_i = x^*
+    $$
+\end{itemize}
+So if $f(x)$ is a contraction we have a unique fixed-point.
+
+\subsection*{Policy Evaluation Algorithm}
+\paragraph*{Theorem (Policy Evaluation Convergence Theorem)}
+
+For a Finite MDP with $|\mathcal{N}|=m$ and $\gamma<1$, if $\boldsymbol{V}^\pi \in \mathbb{R}^m$ is the Value Function of the MDP when evaluated with a fixed policy
+$\pi: \mathcal{N} \times \mathcal{A} \rightarrow[0,1]$, then $\boldsymbol{V}^\pi$ is the unique Fixed-Point of the Bellman Policy Operator $\boldsymbol{B}^\pi: \mathbb{R}^m \rightarrow \mathbb{R}^m$, and
+$$
+\lim _{i \rightarrow \infty}\left(\boldsymbol{B}^\pi\right)^i\left(\boldsymbol{V}_{\mathbf{0}}\right) \rightarrow \boldsymbol{V}^\pi
+$$
+or all starting Value Functions $\boldsymbol{V}_{\mathbf{0}} \in \mathbb{R}^m$
+
+Thus we have the policy evalutation algorithm as this iterative sequence. The running time of each iteration is $O(m^2)$, constructing the MRP from the MDP and the polcy takes $O(m^2k)$ operations where $m = |\mathcal{N}|, k = |\mathcal{A}|$
+
+\subsection*{Policy Iteration Algorithm}
+We want to iterate policy improvements to drive an optimal policy. We use a greedy policy to do this. 
+\paragraph*{Greedy Policy}
+$\mathcal{G}:\mathbb{R}^m\rightarrow(\mathcal{N}\rightarrow\mathcal{A})$:
+$$
+G(\boldsymbol{V})(s)=\pi_D^{\prime}(s)=\underset{a \in \mathcal{A}}{\arg \max }\left\{\mathcal{R}(s, a)+\gamma \sum_{s^{\prime} \in \mathcal{N}} \mathcal{P}\left(s, a, s^{\prime}\right) \cdot \boldsymbol{V}\left(s^{\prime}\right)\right\}
+$$
+
+We say $X \geq Y$ for Value Functions $X, Y: \mathcal{N} \rightarrow \mathbb{R}$ of an MDP iff:
+$$
+X(s) \geq Y(s) \text { for all } s \in \mathcal{N}
+$$
+
+\paragraph*{Policy Improvement Theorem}
+For a finite MDP, for any policy $\pi$:
+$$
+\boldsymbol{V}^{\pi_D^{\prime}}=\boldsymbol{V}^{G\left(\boldsymbol{V}^\pi\right)} \geq \boldsymbol{V}^\pi
+$$
+This can be proved by induction using the monotonicity property of the $\boldsymbol{B}^\pi$ operator.
+This gives us a non-decreasing tower of Value Functions, where each state of further application of $\boldsymbol{B}^{\pi'_D}$ improves the Value Function. 
+
+Policy Improvment Theorem says:
+\begin{itemize}
+    \item Start with Value Function $\boldsymbol{V}^\pi$ (for policy $\pi$)
+    \item Perform a greedy policy improvement to create policy $\pi'_D=G(V^\pi)$
+    \item Perform Policy Evaluation (for policy $\pi'_D$) with starting VF $V^\pi$
+    \item Resulting in VF $V^{\pi'_D} \geq V^\pi$.
+\end{itemize}
+We can repeat this process, creating an improved policy stack, until we see no further improvment. This is the Policy Iteration Algorithm.
+
+Starting with any Value Function $V_0\in\mathbb{R}^m$, iterating over $j = 0, 1, 2, ...$ we calculate (for each iterations):
+The Deterministic Policy:
+$$ \pi_{j+1} = G(V_j)$$
+The Value Function:
+$$ V_{j+1} = \lim_{i\rightarrow\infty}(B^{\pi_{j+1}})^i(V_j)$$
+Then stop when:
+$$ d(V_j, V_{j+1}) = \max_{x\in\mathcal{N}}|(V_j - V_{j+1})(s)| \leq \epsilon$$
+Looking at $i = 1$, we have: 
+$$
+\boldsymbol{V}_{\boldsymbol{j}}(s)=\boldsymbol{B}^{G\left(\boldsymbol{V}_{\boldsymbol{j}}\right)}\left(\boldsymbol{V}_{\boldsymbol{j}}\right)(s)=\max _{a \in \mathcal{A}}\left\{\mathcal{R}(s, a)+\gamma \sum_{s^{\prime} \in \mathcal{N}} \mathcal{P}\left(s, a, s^{\prime}\right) \cdot \boldsymbol{V}_{\boldsymbol{j}}\left(s^{\prime}\right)\right\}
+$$
+We can use the Policy Iteration Convergence Theorem to study the convergence of this value function, giving us the running times as:
+\begin{itemize}
+    \item Runtime of Policy Improvement is $O(m^2k)$, where $|\mathcal{N}| = m, |\mathcal{A}| = k$
+    \item Runtime of each iteration of Policy Evaluation if $O(m^2k)$. 
+\end{itemize}
+\subsection*{Value Iteration Algorithm}
+\paragraph*{Bellman Optimality Operator}
+We can tweak the definition of the Greedy Policy function (to use argmax) to get the Bellman Optimality Operator $B^*:\mathbb{R}^m\rightarrow\mathbb{R}^m$:
+$$
+\boldsymbol{B}^*(\boldsymbol{V})(s)=\max _{a \in \mathcal{A}}\left\{\mathcal{R}(s, a)+\gamma \sum_{s^{\prime} \in \mathcal{N}} \mathcal{P}\left(s, a, s^{\prime}\right) \cdot \boldsymbol{V}\left(s^{\prime}\right)\right\}
+$$
+This is a non-linear transformation of a VF vector. The action $a$ producing the max is that action prescribed by $G(V)$, so:
+$$
+\boldsymbol{B}^{G(\boldsymbol{V})}(\boldsymbol{V})=\boldsymbol{B}^*(\boldsymbol{V}) \text { for all } \boldsymbol{V} \in \mathbb{R}^m
+$$
+Specializing $V$ to be the value function $V^\pi$ gives:
+$$
+\boldsymbol{B}^{G\left(\boldsymbol{V}^\pi\right)}\left(\boldsymbol{V}^\pi\right)=\boldsymbol{B}^*\left(\boldsymbol{V}^\pi\right)
+$$
+
+
+\paragraph*{Fixed-Point of Bellman Optimality Operator}
+$B^*$ is motivated by the MDP Bellman Optimality Equation, giving $B^*$ as the Bellman Optimality Operator for:
+$$
+\boldsymbol{V}^*(s)=\max _{a \in \mathcal{A}}\left\{\mathcal{R}(s, a)+\gamma \sum_{s^{\prime} \in \mathcal{N}} \mathcal{P}\left(s, a, s^{\prime}\right) \cdot \boldsymbol{V}^*\left(s^{\prime}\right)\right\} \text { for all } s \in \mathcal{N}
+$$,
+this means that $V^*$ is a fixed-point of $B^*$.
+We can also prove that $B^*$ is a contraction using its monotonicity and its constant shift property.
+
+\paragraph*{Value Iteration Algorithm}
+This gives the the Value Iteration Algorithm.
+Start with any Value Function $V_0 \in \mathbb{R}^m$
+Iterating over $i=0,1,2, \ldots$, calculate in each iteration:
+$$
+V_{i+1}(s)=B^*\left(V_i\right)(s) \text { for all } s \in \mathcal{N}
+$$
+Stop when $d\left(\boldsymbol{V}_{\boldsymbol{i}}, \boldsymbol{V}_{\boldsymbol{i}+\boldsymbol{1}}\right)=\max _{\boldsymbol{s} \in \mathcal{N}}\left|\left(\boldsymbol{V}_{\boldsymbol{i}}-\boldsymbol{V}_{\boldsymbol{i}+\boldsymbol{1}}\right)(s)\right|$ is small enough.
+
+The running time of each iteration of Value Iteration is $O(m^2k)$ where $|\mathcal{N}| = m, |\mathcal{A}| = k$.
+
+\paragraph*{Optimal Policy from Optimal Value Function}
+Value Iteration does not deal with any policies, only the value functions. This means that we extract an optimal policy from the optimal value function s.t. $V^{\pi^*} = V^*$. We can do this using the Greedy Policy gunction $G$:
+$$
+\boldsymbol{B}^{G(\boldsymbol{V})}(\boldsymbol{V})=\boldsymbol{B}^*(\boldsymbol{V}) \text { for all } \boldsymbol{V} \in \mathbb{R}^m
+$$
+Specializing $\boldsymbol{V}$ to $\boldsymbol{V}^*$, we get:
+$$
+\boldsymbol{B}^{G\left(\boldsymbol{V}^*\right)}\left(\boldsymbol{V}^*\right)=\boldsymbol{B}^*\left(\boldsymbol{V}^*\right)
+$$
+But we know $\boldsymbol{V}^*$ is the Fixed-Point of $\boldsymbol{B}^*$, i.e., $\boldsymbol{B}^*\left(\boldsymbol{V}^*\right)=\boldsymbol{V}^*$. So,
+$$
+\boldsymbol{B}^{G\left(\boldsymbol{V}^*\right)}\left(\boldsymbol{V}^*\right)=\boldsymbol{V}^*
+$$
+So $\boldsymbol{V}^*$ is the Fixed-Point of the Bellman Policy Operator $\boldsymbol{B}^{G\left(\boldsymbol{V}^*\right)}$ But we know $\boldsymbol{B}^{G\left(\boldsymbol{V}^*\right)}$ has a unique Fixed-Point $\left(=\boldsymbol{V}^{G\left(\boldsymbol{V}^*\right)}\right)$. So,
+$$
+\boldsymbol{V}^{G\left(\boldsymbol{V}^*\right)}=\boldsymbol{V}^*
+$$
+Evaluating MDP with greedy policy extracted from $\boldsymbol{V}^*$ achieves $\boldsymbol{V}^*$ So, $G\left(\boldsymbol{V}^*\right)$ is a (Deterministic) Optimal Policy
+
+\paragraph*{Value Function Progression in Policy Iteration}
+$$
+\begin{gathered}
+\pi_1=G\left(\boldsymbol{V}_{\mathbf{0}}\right): \boldsymbol{V}_{\mathbf{0}} \rightarrow \boldsymbol{B}^{\pi_1}\left(\boldsymbol{V}_{\mathbf{0}}\right) \rightarrow \ldots\left(\boldsymbol{B}^{\pi_1}\right)^i\left(\boldsymbol{V}_{\mathbf{0}}\right) \rightarrow \ldots \boldsymbol{V}^{\pi_1}=\boldsymbol{V}_{\mathbf{1}} \\
+\pi_2=G\left(\boldsymbol{V}_{\mathbf{1}}\right): \boldsymbol{V}_{\mathbf{1}} \rightarrow \boldsymbol{B}^{\pi_2}\left(\boldsymbol{V}_{\mathbf{1}}\right) \rightarrow \ldots\left(\boldsymbol{B}^{\pi_2}\right)^i\left(\boldsymbol{V}_{\mathbf{1}}\right) \rightarrow \ldots \boldsymbol{V}^{\pi_2}=\boldsymbol{V}_{\mathbf{2}} \\
+\ldots \\
+\ldots \\
+\pi_{j+1}=G\left(\boldsymbol{V}_{\boldsymbol{j}}\right): \boldsymbol{V}_{\boldsymbol{j}} \rightarrow \boldsymbol{B}^{\pi_{j+1}}\left(\boldsymbol{V}_{\boldsymbol{j}}\right) \rightarrow \ldots\left(\boldsymbol{B}^{\pi_{j+1}}\right)^i\left(\boldsymbol{V}_{\boldsymbol{j}}\right) \rightarrow \ldots \boldsymbol{V}^{\pi_{j+1}}=\boldsymbol{V}^*
+\end{gathered}
+$$
+Policy Evaluation and Policy Improvement alternate until convergence, in the process competing to try and be consistent. 
+
+
+\subsection*{Generalized Policy Iteration Algorithm}
+\paragraph*{Value Iteration and RL as GPI}
+Value Iteration takes only one step of Policy Evaluation. 
+$$
+\begin{gathered}
+\pi_1=G\left(\mathbf{V}_{\mathbf{0}}\right): \mathbf{V}_{\mathbf{0}} \rightarrow \boldsymbol{B}^{\pi_1}\left(\mathbf{V}_{\mathbf{0}}\right)=\mathbf{V}_{\mathbf{1}} \\
+\pi_2=G\left(\mathbf{V}_{\mathbf{1}}\right): \mathbf{V}_{\mathbf{1}} \rightarrow \boldsymbol{B}^{\pi_2}\left(\mathbf{V}_{\mathbf{1}}\right)=\mathbf{V}_{\mathbf{2}} \\
+\cdots \\
+\cdots \\
+\pi_{j+1}=G\left(\boldsymbol{V}_{\boldsymbol{j}}\right): \boldsymbol{V}_{\boldsymbol{j}} \rightarrow \boldsymbol{B}^{\pi_{j+1}}\left(\mathbf{V}_{\boldsymbol{j}}\right)=\mathbf{V}^*
+\end{gathered}
+$$
+RL updates either a subset of states or just one state at a time. These can be thought of as partial Policy Evaluation/Improvement.
+
+\subsection*{Asyncronous Dynamic Programming}
+In Asyncronous Dynamic Programming we can update a subset of states, or update in a random order:
+\begin{itemize}
+    \item In-place update enable updated values to be used immediately.
+    \item Prioritized Sweeping keeps states sorted by their Value Fucntion Gaps:
+    $$
+    \text { Gaps } g(s)=\left|V(s)-\max _{a \in \mathcal{A}}\left\{\mathcal{R}(s, a)+\gamma \cdot \sum_{s^{\prime} \in \mathcal{N}} \mathcal{P}\left(s, a, s^{\prime}\right) \cdot V\left(s^{\prime}\right)\right\}\right|
+    $$
+    But this requires us to knwo the reverse transitions to resort queue.
+    \item Real-Time Dynamic Programming runs DP while the agent is experienceing real-time interaction with the environment:
+    \begin{itemize}
+        \item A state is updated when it is visited during the real-time interations.
+        \item The choice of action is goverened by the real-time VF-extracted policy. 
+    \end{itemize}
+\end{itemize}
+
+\end{document}
