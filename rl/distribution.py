@@ -315,7 +315,6 @@ class Choose(FiniteDistribution[A]):
 class Categorical(FiniteDistribution[A]):
     '''Select from a finite set of outcomes with the specified
     probabilities.
-
     '''
 
     probabilities: Mapping[A, float]

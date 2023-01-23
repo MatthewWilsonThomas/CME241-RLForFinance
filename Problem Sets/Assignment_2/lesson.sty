@@ -1,0 +1,133 @@
+\ProvidesPackage{lesson}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[top=25mm,bottom=22mm,left=17mm,right=17mm]{geometry}
+\usepackage{amsmath}
+\usepackage[safe]{tipa}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{wrapfig}
+\usepackage{fancyhdr}
+\usepackage[export]{adjustbox}
+\usepackage{titling}
+\usepackage{changepage}
+\usepackage{array}
+\usepackage{braket}
+\usepackage{amsfonts}
+
+% Image folder
+\graphicspath{ {./images/} }
+
+% No indenting
+\setlength{\parindent}{0pt}
+
+% Spacing in tables
+\def\arraystretch{2}
+
+% Center & word wrap columns
+\newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
+
+% Title and course names
+\newcommand{\titlename}{Title}
+\newcommand{\subtitlename}{Subtitle}
+\newcommand{\coursename}{Course}
+\newcommand{\datename}{Date}
+
+% Setting title and course names
+\newcommand{\settitle}[1]{\renewcommand{\titlename}{#1}}
+\newcommand{\setsubtitle}[1]{\renewcommand{\subtitlename}{#1}}
+\newcommand{\setcourse}[1]{\renewcommand{\coursename}{#1}}
+\newcommand{\setdate}[1]{\renewcommand{\datename}{#1}}
+% Set up title
+\title{\titlename\\\subtitlename}
+\author{\coursename}
+\date{\datename}
+
+% Counters for questions and answers
+\newcounter{qcounter}
+\newcounter{acounter}[qcounter]
+
+% Header
+\pagestyle{fancy}
+\fancyhead[L]{\textsc{\titlename}}
+\fancyhead[C]{\textsc{\subtitlename}}
+\setlength{\headheight}{26pt}
+
+% Footer
+\fancyfoot[C]{Page \thepage}
+\renewcommand{\footrulewidth}{1pt}
+
+% Header for first page
+\fancypagestyle{first}{
+    \renewcommand{\headrulewidth}{0pt}
+    \lhead{}
+    \chead{}
+    \rhead{
+        \parbox{0.45\textwidth}{Name: Matthew Thomas}
+    }
+}
+% Move title up on page
+\setlength{\droptitle}{-20mm}
+
+% Ugly fix for arc notation
+\newcommand{\arc}[1]{
+	{\setbox9=\hbox{#1}\ooalign{
+		\resizebox{\wd9}{\height}{\texttoptiebar{\phantom{A}}}\cr#1
+	}}
+}
+
+% Left section
+\newenvironment{leftside}[1]{
+	\begin{minipage}[t]{#1\linewidth}
+}{
+	\end{minipage}\hfill
+}
+
+% Right section
+\newenvironment{rightside}[1]{
+	\begin{minipage}[t]{#1\linewidth}
+}{
+	\end{minipage}
+}
+
+% Insert image
+% Params: height in mm, alignment, file
+\newcommand{\diagram}[3]{
+	\includegraphics[height=#1mm,keepaspectratio=true,#2]{#3}
+}
+
+% Question command
+% Param: text
+\newcommand{\question}[1]{
+    \par\stepcounter{qcounter}\textbf{\arabic{qcounter}.} #1
+}
+
+% Question with diagram command
+% Params: image file, text
+\newcommand{\questiond}[4][1]{
+    \par\begin{wrapfigure}[#1]{r}{#3\textwidth}
+        \includegraphics[width=#3\textwidth,keepaspectratio=true,center]{#2}
+    \end{wrapfigure}
+    \stepcounter{qcounter}\textbf{\arabic{qcounter}.} #4
+}
+
+% Part command (for answer choices or multiple parts)
+% Param: text
+\newcommand{\option}[2][2]{
+    \vspace{#1mm}
+    \begin{adjustwidth}{12mm}{0mm}
+        \stepcounter{acounter}\textbf{\Alph{acounter}.} #2
+    \end{adjustwidth}
+}
+
+% Blank line for answer
+% Param: length (in mm)
+\newcommand{\blankline}[1]{
+	\parbox{#1mm}{\vtop{\vskip2.5mm \hrulefill}}
+}
+
+
+% Math commands for simplicity
+\renewcommand{\P}[1]{\mathbb{P}[#1]}
+\newcommand{\E}[1]{\mathbb{E}[#1]}
