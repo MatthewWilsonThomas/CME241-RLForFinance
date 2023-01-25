@@ -52,7 +52,9 @@ if question == 1 or question == 0:
                 value.probabilities[outcome] = 1/6
             if outcome.square > 100:
                 del value.probabilities[outcome]
-
+                for outcome_sub, prob in value.probabilities.items():
+                    if outcome_sub.square == 100:
+                        prob += 1/6
 
     SnakesAndLaddersGame = FiniteMarkovProcess(Transition)
 
@@ -60,7 +62,7 @@ if question == 1 or question == 0:
     # Always start on square 0
     starting_distribution = Categorical({NonTerminal(StateSL(0)):1})
 
-    num_traces = 10000
+    num_traces = 1000
 
     # Get the python generate
     traces = itertools.islice(SnakesAndLaddersGame.traces(starting_distribution), num_traces)
@@ -99,6 +101,9 @@ if question == 1 or question == 0:
                 value.probabilities[outcome] = 1/6
             if outcome[0].square > 100:
                 del value.probabilities[outcome]
+                for outcome_sub, prob in value.probabilities.items():
+                    if outcome_sub[0].square == 100:
+                        value.probabilities[outcome_sub] += 1/6
 
     SnakesAndLaddersRewardGame = FiniteMarkovRewardProcess(TransitionReward)
 

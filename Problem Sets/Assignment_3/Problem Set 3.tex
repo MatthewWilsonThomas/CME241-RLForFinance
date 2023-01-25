@@ -1,0 +1,61 @@
+\documentclass[11pt]{article}
+
+% Load package
+\usepackage{../lesson}
+\setcounter{MaxMatrixCols}{20}
+
+% Set title and course name
+\settitle{Problem Set 3}
+\setsubtitle{MDP and Dynamic Programmings}
+\setcourse{CME241 - Reinforcement Learning for Finance}
+\setdate{Due: 23.01.2023}
+
+\begin{document}
+
+% Create title and add proper header for first page
+\maketitle
+\thispagestyle{first}
+
+\section{Analytic Optimal Actions and Cost}
+\begin{align}
+    s\in{\mathcal{S}}&,\quad \mathcal{S} = \mathbb{R}\\
+    a\in{\mathcal{A}}&,\quad \mathcal{A} = \mathbb{R}
+\end{align}
+
+We also have that $s' \sim \mathcal{N}(s, \sigma^2)$. 
+
+Our goal is to minimize the Infinite-Horizeon Expected Discounted Sum of Costs. To do this we define:
+$$
+C = \sum_{i=0}^\infty \gamma^ie^{as'_i}
+$$
+We can they say that since $\gamma = 0$ all future costs are ignored giving:
+$$
+C = e^{as'_0}
+$$
+The expectation of this is thus:
+$$
+\E{C} = \E{e^{as'_0}}
+$$
+
+We also know that $s'\sim\mathcal{N}(s, \sigma^2)$ giving $as'\sim\mathcal{N}(as, a^2\sigma^2)$. This gives us a distribution for the exponential as the log-Normal distribution $\sim logNormal(as', a^2\sigma^2)$
+
+This gives us a closed form expectations:
+$$
+\E{C} = e^{as + \frac{a^2\sigma^2}{2}}
+$$
+Minimizing this cost:
+\begin{align}
+    \min_{a\in\mathcal{A}} \E{C} &= \min_{a\in\mathcal{A}} e^{as + \frac{a^2\sigma^2}{2}}\\
+    &= \min_{a\in\mathcal{A}} as + \frac{a^2\sigma^2}{2} \\
+    \frac{\partial}{\partial a}\left(as + \frac{a^2\sigma^2}{2}\right) &= s + a\sigma^2 \\
+    \text{giving optimality as}\quad a &= -\frac{s}{\sigma^2}\\
+    \text{the optimal policy therefore leads to }\quad \E{C} &= e^{as + \frac{a^2\sigma^2}{2}} \\
+    &= e^{-\frac{s^2}{\sigma^2} + \frac{s^2\sigma^2}{\sigma^4}} \\
+    &= e^{-\frac{s^2}{2\sigma^2}}
+\end{align}
+
+%----------------------------------------------
+\newpage
+\section{Manual Value Iteration}
+
+\end{document}
