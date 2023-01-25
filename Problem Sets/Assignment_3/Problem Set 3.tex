@@ -119,6 +119,15 @@ We can see the optimal policy (the policy which achieves these values) is given 
 \end{align}
 
 We can also see from the relation between $V_2(s)\ \&\ V_1(s)$ that the optiamal policy will remain at $\pi_2(s)$ for all future values. 
+Since we know that $V_t(s)$ is an increasing function, i.e. we get better values each time, we can see that the relation implied by the transition probabilities in both states implies that this increasing nature will force the optimal policy to remain the same. 
+
+This can be seen with:
+\begin{align}
+    s_1&: \quad 0.1(11.2) + 0.4(4.3)>2 \\
+    s_2&: \quad 0.2(11.2) > 2
+\end{align}
+These relations guarentee that the current optimal policy (i.e. $\pi_2(s)$) will remain optimal in all future steps.
+
 
 
 \end{document}
