@@ -57,5 +57,68 @@ Minimizing this cost:
 %----------------------------------------------
 \newpage
 \section{Manual Value Iteration}
+\begin{align}
+    \mathcal{S} &= \{s_1, s_2, s_3\} \\
+    \mathcal{T} &= \{s_3\} \\
+    \mathcal{A} &= \{a_1, a_2\}
+\end{align}
+
+We have the Value Iteration Update as:
+$$
+V_{i+1}(s)=B^*\left(V_i\right)(s) \text { for all } s \in \mathcal{N}
+$$
+with
+$$
+\boldsymbol{B}^*(\boldsymbol{V})(s)=\max _{a \in \mathcal{A}}\left\{\mathcal{R}(s, a)+\gamma \sum_{s^{\prime} \in \mathcal{N}} \mathcal{P}\left(s, a, s^{\prime}\right) \cdot \boldsymbol{V}\left(s^{\prime}\right)\right\}
+$$
+
+We also know the starting Value Function:
+\begin{align}
+    V_0(s) = \begin{bmatrix}
+        10 \\
+        1\\
+        0
+    \end{bmatrix}
+\end{align}
+
+Using the value iteration update we can then write:
+\begin{align}
+    V_1(s) = \begin{bmatrix}
+        \max_{a\in\mathcal{A}} \left\{\mathcal{R}(s_1, a) + \sum_{s' \in \mathcal{N}} \mathcal{P}(s_1, a, s') \cdot \boldsymbol{V}(s') \right\}\\
+        \max_{a\in\mathcal{A}} \left\{\mathcal{R}(s_2, a) + \sum_{s' \in \mathcal{N}} \mathcal{P}(s_2, a, s') \cdot \boldsymbol{V}(s') \right\}\\
+        0
+    \end{bmatrix} = \begin{bmatrix}
+        11.2\\
+        4.3\\
+        0
+    \end{bmatrix}
+\end{align}
+Then, by iterating again:
+\begin{align}
+    V_2(s) = \begin{bmatrix}
+        \max_{a\in\mathcal{A}} \left\{\mathcal{R}(s_1, a) + \sum_{s' \in \mathcal{N}} \mathcal{P}(s_1, a, s') \cdot \boldsymbol{V}(s') \right\}\\
+        \max_{a\in\mathcal{A}} \left\{\mathcal{R}(s_2, a) + \sum_{s' \in \mathcal{N}} \mathcal{P}(s_2, a, s') \cdot \boldsymbol{V}(s') \right\}\\
+        0
+    \end{bmatrix} = \begin{bmatrix}
+        12.82\\
+        5.89\\
+        0
+    \end{bmatrix}
+\end{align}
+
+We can see the optimal policy (the policy which achieves these values) is given by:
+\begin{align}
+    \pi_1(s) = \begin{bmatrix}
+        a_2 \\
+        a_2
+    \end{bmatrix};\quad
+    \pi_2(s) = \begin{bmatrix}
+        a_1 \\
+        a_2
+    \end{bmatrix}
+\end{align}
+
+We can also see from the relation between $V_2(s)\ \&\ V_1(s)$ that the optiamal policy will remain at $\pi_2(s)$ for all future values. 
+
 
 \end{document}

@@ -27,4 +27,5 @@ book.tex
 latex/Alon*
 latex/epigrafica.sty
 lgrenc.def
+*.gz
 
