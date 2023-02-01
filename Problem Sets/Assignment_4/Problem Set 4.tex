@@ -1,0 +1,105 @@
+\documentclass[11pt]{article}
+
+% Load package
+\usepackage{../lesson}
+\setcounter{MaxMatrixCols}{20}
+
+% Set title and course name
+\settitle{Problem Set 4}
+\setsubtitle{Utility Functions and Risk Aversion}
+\setcourse{CME241 - Reinforcement Learning for Finance}
+\setdate{Due: 01.02.2023}
+
+\begin{document}
+
+% Create title and add proper header for first page
+\maketitle
+\thispagestyle{first}
+
+\section{Approximate Policy Iteration}
+
+
+%----------------------------------------------
+\newpage
+\section{Utility Functions}
+\paragraph*{Expected Utility}
+\begin{align}
+    \E{U(x)} &= \E{x - \frac{\alpha}{2}x^2} \\
+    &= \E{x} - \frac{\alpha}{2}\E{x^2} \\
+    &= \mu - \frac{\alpha}{2}(\sigma^2+\mu^2)
+\end{align}
+\paragraph*{Certainty Equivalent}
+\begin{align}
+    U(x_{CE}) &= \E{U(x)}\\
+    x - \frac{\alpha}{2} &= \mu - \frac{\alpha}{2}(\sigma^2 + \mu^2) \\
+    \text{Solving using quadratic formula gives:}\quad &\\
+    x &= \frac{1\pm\sqrt{\alpha^2(\mu^2 + \sigma^2)-2\alpha\mu + 1}}{\alpha}
+\end{align}
+
+\paragraph*{Absolute Risk Premium}
+The ARP is defined as:
+\begin{align}
+    \pi_A &= \E{x} - x_{CE} \\
+    &= \mu - \frac{1\pm\sqrt{\alpha^2(\mu^2 + \sigma^2)-2\alpha\mu + 1}}{\alpha}
+\end{align}
+
+\paragraph*{Optimal investment rate}
+To optimize the utility given the risk aversion we can find the distribution of wealth at the end of the year (given the investment choice):
+\begin{align}
+    W_1 &\sim \mathcal{N}(z\mu + (1-z)r, z^2\sigma^2) \\
+    \E{U(W_1)} &= z\mu + (1-z)r - \frac{\alpha}{2}(z^2\sigma^2 + (z\mu + (1-z)r)^2)
+\end{align}
+We can optimize this through:
+\begin{align}
+    \frac{\partial^2}{\partial f^2}\E{U(W_1)} &= \mu - r - \alpha(z\sigma^2 + z\mu^2 - r^2 + + zr^2 + \mu r - 2z\mu r)  = 0\\
+    z &= \frac{(\mu - r)(\frac{1}{\alpha} - r)}{\sigma^2 + \mu^2 + r^2 - 2\mu r}
+\end{align}
+
+
+%----------------------------------------------
+\newpage
+\section{Kelly Criterion}
+Starting with a bet of $fW_0$ dollars you have the following behaviour:
+\begin{align}
+    W_1 &= (1 - f)W_0 + \begin{cases}
+        fW_0(1 + \alpha);\quad p \\
+        fW_0(1 - \beta);\quad 1-p
+    \end{cases} \\
+    &= W_0 + \begin{cases}
+        fW_0\alpha; \quad p \\
+        -fW_0\beta; \quad 1-p
+    \end{cases} \\
+    &= W_0 \cdot \begin{cases}
+        (1 + f\alpha);\quad p\\
+        (1 - f\beta); \quad 1-p
+    \end{cases}
+\end{align}.
+
+Then we know that the two outcomes for log wealth can be written as:
+\begin{align}
+    \log W_0 &= \log W_0 + \begin{cases}
+        (1 + f\alpha);\quad p\\
+        (1 - f\beta); \quad 1-p
+    \end{cases}\\
+    \text{Giving: }\quad &\\
+    \E{\log W_1} &= \log W_0 + p\log (1 + f\alpha) + (1-p)\log(1 - f\beta)
+\end{align}
+Taking the derivative w.r.t $f$ results in the following:
+\begin{align}
+    \frac{\partial}{\partial f}\E{\log W_1} &= \frac{p\alpha}{1 + f\alpha} - \frac{(1-p)\beta}{1-f\beta} \\
+    \text{Giving: }\quad&\\
+    f^* &= \frac{p\alpha - (1-p)\beta}{\alpha\beta} \\
+    &= \frac{p}{\beta} - \frac{1-p}{\alpha}
+\end{align}
+
+This is know to be the Kelly Criterion formula as required. 
+
+We can also see that this is the maxima by evaluating the second derivative at $f^*$:
+\begin{align}
+    \frac{\partial^2}{\partial f^2}\E{\log W_1} &= -\left[\frac{p\alpha^2}{(1+f\alpha)^2} + \frac{(1-p)\beta^2}{(1-p\beta)^2}\right]
+\end{align}
+Which is always negative, meaning we have a maxima here.
+
+This clearly makes intuitive sense based on the dependencies on $\alpha, \beta$ and $p$. I am convinced.
+
+\end{document}
