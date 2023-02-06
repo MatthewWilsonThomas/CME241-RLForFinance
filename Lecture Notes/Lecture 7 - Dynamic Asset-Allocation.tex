@@ -1,0 +1,243 @@
+\documentclass[11pt]{article}
+
+% Load package
+\usepackage{lesson}
+
+% Set title and course name
+\settitle{Lecture 7}
+\setsubtitle{Dynamic Asset Allocation and Consumption}
+\setcourse{CME241 - Reinforcement Learning for Finance}
+\setdate{01.02.2023}
+
+\begin{document}
+
+% Create title and add proper header for first page
+\maketitle
+\thispagestyle{first}
+
+We consider both how to allocate money and how to consume to optimise for needs/operations/pleasure.
+
+Thus we have the objective to maximize Horizon-Aggregated Expected Utility of Consumption. 
+
+\section*{Continuous Time Formulation}
+\paragraph*{Merton's Frictionless Continuous Time Formulation}
+The framework that we are working within is Merton's Frictionless Continuous Time Formulation. 
+Assume we have the current wealth of $W_0>0$ and you have $T$ years to optimise over. We can invest in $n$ risky assets and a riskless asset (modelled as the treasury bond). Each risky asset has a known normal distribution (where we are allowed to go long/short any fractional quantity of the asset). We are trading in continuous time. We must thus make the Dynamic decision of the Optimal Allocation and Consumption at each time. 
+
+We are using the following definitions for this formulation:
+\begin{itemize}
+    \item Riskless asset: $dR_t = rR_tdt$
+    \item Risky asset: $dS_t = \mu S_t dt + \sigma S_t dz_t$
+    \item Utility of Consumption Function: $U(x) = \frac{x^{1-\gamma}}{1-\gamma}$ for $0<\gamma\neq1$.
+    \item Utility of Consumption Function: $U(x) = \log(x)$ for $\gamma = 1$. 
+    \item Relative Risk Aversion: $\gamma = const$.
+\end{itemize}
+
+The formal problem statement becomes:
+The balance constraint for the Wealth Process:
+$$ 
+dW_t = ((\pi_t(\mu - r) + r) W_t - c_t)dt + \pi_t \sigma W_t dz_t 
+$$
+At any time $t$, we want to determine the optimal pair $\pi(t, W_t), c(t, W_t)$ to maximize:
+$$
+\mathbb{E}\left[\int_t^T \frac{e^{-\rho(s-t)} \cdot c_s^{1-\gamma}}{1-\gamma} \cdot d s+\frac{e^{-\rho(T-t)} \cdot B(T) \cdot W_T^{1-\gamma}}{1-\gamma} \mid W_t\right]
+$$
+with the $B(T)$ being the bequest function, assuming for simplicity that $B(T) = \epsilon^\gamma\quad \epsilon << 1$, resulting in no bequest. 
+
+This is a continuous time stochastic control problem, with the variables:
+\begin{itemize}
+    \item State: $(t, W_t)$
+    \item Action: $[\pi_t, c_t]$
+    \item Reward per unit time: $U(c_t) = \frac{c^{1-\gamma}_t}{1-\gamma}$
+    \item Reward at time t: 
+        $$
+        \int_t^T e^{-\rho(s-t)} \cdot \frac{c_s^{1-\gamma}}{1-\gamma} \cdot d s
+        $$
+    \item We want to find the policy to maximise the Expected Return. 
+\end{itemize}
+
+\paragraph*{Optimal Value Function}
+The value function for a State is the Expected Return from the State (when following the Policy):
+$$
+V^*\left(t, W_t\right)=\max _{\pi, c} \mathbb{E}_t\left[\int_t^T \frac{e^{-\rho(s-t)} \cdot c_s^{1-\gamma}}{1-\gamma} \cdot d s+\frac{e^{-\rho(T-t)} \cdot \epsilon^\gamma \cdot W_T^{1-\gamma}}{1-\gamma}\right]
+$$
+$V^*\left(t, W_t\right)$ satisfies a simple recursive formulation for $0 \leq t<t_1<T$
+$$
+\begin{aligned}
+& V^*\left(t, W_t\right)=\max _{\pi, c} \mathbb{E}_t\left[\int_t^{t_1} \frac{e^{-\rho(s-t)} \cdot c_s^{1-\gamma}}{1-\gamma} \cdot d s+e^{-\rho\left(t_1-t\right)} \cdot V^*\left(t_1, W_{t_1}\right)\right] \\
+& \Rightarrow e^{-\rho t} \cdot V^*\left(t, W_t\right)=\max _{\pi, c} \mathbb{E}_t\left[\int_t^{t_1} \frac{e^{-\rho s} \cdot c_s^{1-\gamma}}{1-\gamma} \cdot d s+e^{-\rho t_1} \cdot V^*\left(t_1, W_{t_1}\right)\right]
+\end{aligned}
+$$
+
+\paragraph*{HJB for Optimal Value Function}
+Rewriting in stochastic differential form, we have the HJB formulation
+$$
+\begin{aligned}
+& \max _{\pi_t, c_t} \mathbb{E}_t\left[d\left(e^{-\rho t} \cdot V^*\left(t, W_t\right)\right)+\frac{e^{-\rho t} \cdot c_t^{1-\gamma}}{1-\gamma} \cdot d t\right]=0 \\
+& \Rightarrow \max _{\pi_t, c_t} \mathbb{E}_t\left[d V^*\left(t, W_t\right)+\frac{c_t^{1-\gamma}}{1-\gamma} \cdot d t\right]=\rho \cdot V^*\left(t, W_t\right) \cdot d t \\
+&
+\end{aligned}
+$$
+Use Ito's Lemma on $d V^*$, remove the $d z_t$ term since it's a martingale, and divide throughout by $d t$ to produce the HJB Equation in PDE form:
+$$
+\begin{aligned}
+\max _{\pi_t, c_t}\left[\frac{\partial V^*}{\partial t}+\frac{\partial V^*}{\partial W}\left(\left(\pi_t(\mu-r)\right.\right.\right. & \left.\left.+r) W_t-c_t\right)+\frac{\partial^2 V^*}{\partial W^2} \cdot \frac{\pi_t^2 \sigma^2 W_t^2}{2}+\frac{c_t^{1-\gamma}}{1-\gamma}\right] \\
+& =\rho \cdot V^*\left(t, W_t\right)
+\end{aligned}
+$$
+Let us write the above equation more succinctly as:
+$$
+\max _{\pi_t, c_t} \Phi\left(t, W_t ; \pi_t, c_t\right)=\rho \cdot V^*\left(t, W_t\right)
+$$
+Note: we are working with the constraints $W_t>0, c_t \geq 0$ for $0 \leq t<T$
+
+\paragraph*{Optimal Allocation and Consumption}
+Find optimal $\pi_t^*, c_t^*$ by taking partial derivatives of $\Phi\left(t, W_t ; \pi_t, c_t\right)$ with respect to $\pi_t$ and $c_t$, and equate to 0 (first-order conditions for $\Phi$ ).
+- Partial derivative of $\Phi$ with respect to $\pi_t$ :
+$$
+\begin{aligned}
+(\mu-r) & \cdot \frac{\partial V^*}{\partial W_t}+\frac{\partial^2 V^*}{\partial W_t^2} \cdot \pi_t \cdot \sigma^2 \cdot W_t=0 \\
+& \Rightarrow \pi_t^*=\frac{-\frac{\partial V^*}{\partial W_t} \cdot(\mu-r)}{\frac{\partial^2 V^*}{\partial W_t^2} \cdot \sigma^2 \cdot W_t}
+\end{aligned}
+$$
+- Partial derivative of $\Phi$ with respect to $c_t$ :
+$$
+\begin{gathered}
+-\frac{\partial V^*}{\partial W_t}+\left(c_t^*\right)^{-\gamma}=0 \\
+\Rightarrow c_t^*=\left(\frac{\partial V^*}{\partial W_t}\right)^{\frac{-1}{\gamma}}
+\end{gathered}
+$$
+
+\paragraph*{PDE}
+Now substitute $\pi_t^*$ and $c_t^*$ in $\Phi\left(t, W_t ; \pi_t, c_t\right)$ and equate to $\rho V^*\left(t, W_t\right)$, which gets us the Optimal Value Function PDE:
+$$
+\frac{\partial V^*}{\partial t}-\frac{(\mu-r)^2}{2 \sigma^2} \cdot \frac{\left(\frac{\partial V^*}{\partial W_t}\right)^2}{\frac{\partial^2 V^*}{\partial W_t^2}}+\frac{\partial V^*}{\partial W_t} \cdot r \cdot W_t+\frac{\gamma}{1-\gamma} \cdot\left(\frac{\partial V^*}{\partial W_t}\right)^{\frac{\gamma-1}{\gamma}}=\rho V^*
+$$
+The boundary condition is:
+$$
+V^*\left(T, W_T\right)=\epsilon^\gamma \cdot \frac{W_T^{1-\gamma}}{1-\gamma}
+$$
+The second-order conditions for $\Phi$ are satisfied under the assumptions $c_t^*>0, W_t>0, \frac{\partial^2 V^*}{\partial W_t^2}<0$ for all $0 \leq t<T$ (we will later show that these are all satisfied in the solution we derive), and for concave $U(\cdot)$, i.e., $\gamma>0$
+
+We surmise with a guess solution
+$$
+V^*\left(t, W_t\right)=f(t)^\gamma \cdot \frac{W_t^{1-\gamma}}{1-\gamma}
+$$
+Then,
+$$
+\begin{gathered}
+\frac{\partial V^*}{\partial t}=\gamma \cdot f(t)^{\gamma-1} \cdot f^{\prime}(t) \cdot \frac{W_t^{1-\gamma}}{1-\gamma} \\
+\frac{\partial V^*}{\partial W_t}=f(t)^\gamma \cdot W_t^{-\gamma} \\
+\frac{\partial^2 V^*}{\partial W_t^2}=-f(t)^\gamma \cdot \gamma \cdot W_t^{-\gamma-1}
+\end{gathered}
+$$
+
+
+
+
+\paragraph*{Optimal Allocation and Consumption}
+Putting it all together (substituting the solution for $f(t)$ ), we get:
+$$
+\begin{gathered}
+\pi^*\left(t, W_t\right)=\frac{\mu-r}{\sigma^2 \gamma} \\
+c^*\left(t, W_t\right)=\frac{W_t}{f(t)}= \begin{cases}\frac{\nu \cdot W_t}{1+(\nu \epsilon-1) \cdot e^{-\nu(T-t)}} & \text { for } \nu \neq 0 \\
+\frac{W_t}{T-t+\epsilon} & \text { for } \nu=0\end{cases} \\
+V^*\left(t, W_t\right)= \begin{cases}\frac{\left(1+(\nu \epsilon-1) \cdot e^{-\nu(T-t)}\right)^\gamma}{\nu^\gamma} \cdot \frac{W_t^{1-\gamma}}{1-\gamma} & \text { for } \nu \neq 0 \\
+\frac{(T-t+\epsilon)^\gamma \cdot W_t^{1-\gamma}}{1-\gamma} & \text { for } \nu=0\end{cases}
+\end{gathered}
+$$
+\begin{itemize}
+    \item $f(t)>0$ for all $0 \leq t<T$ (for all $\nu$ ) ensures $W_t, c_t^*>0, \frac{\partial^2 V^*}{\partial W_t^2}<0$. This ensures the constraints $W_t>0$ and $c_t \geq 0$ are satisfied and the second-order conditions for $\Phi$ are also satisfied.
+    \item The HJB Formulation was key and this solution approach provides a template for similar continuous-time stochastic control problems.
+\end{itemize}
+
+\section*{Discrete Time Formulation}
+\paragraph*{MDP}
+Essentially the same as the above formulation, discretizing the time steps. 
+
+\paragraph*{Optimal Value Function and Bellman Optimality}
+Denote Value Function at time $t$ for policy $\pi=\left(\pi_0, \pi_1, \ldots, \pi_{T-1}\right)$ as:
+$$
+V_t^\pi\left(W_t\right)=\mathbb{E}_\pi\left[\frac{-e^{-a W_T}}{a} \mid\left(t, W_t\right)\right]
+$$
+Denote Optimal Value Function at time $t$ as:
+$$
+V_t^*\left(W_t\right)=\max _\pi V_t^\pi\left(W_t\right)=\max _\pi\left\{\mathbb{E}_\pi\left[\frac{-e^{-a W_T}}{a} \mid\left(t, W_t\right)\right]\right\}
+$$
+Bellman Optimality Equation is:
+$$
+\begin{gathered}
+V_t^*\left(W_t\right)=\max _{x_t}\left\{\mathbb{E}_{Y_t \sim \mathcal{N}\left(\mu, \sigma^2\right)}\left[V_{t+1}^*\left(W_{t+1}\right)\right]\right\} \\
+V_{T-1}^*\left(W_{T-1}\right)=\max _{x_{T-1}}\left\{\mathbb{E}_{Y_{T-1} \sim \mathcal{N}\left(\mu, \sigma^2\right)}\left[\frac{-e^{-a W_T}}{a}\right]\right\}
+\end{gathered}
+$$
+Make an educated guess for the functional form of the $V_t^*\left(W_t\right)$ :
+$$
+V_t^*\left(W_t\right)=-b_t \cdot e^{-c_t \cdot W_t}
+$$
+where $b_t, c_t$ are independent of the wealth $W_t$
+
+We express Bellman Optimality Equation using this functional form:
+$$
+\begin{aligned}
+V_t^*\left(W_t\right) & =\max _{x_t}\left\{\mathbb{E}_{Y_t \sim \mathcal{N}\left(\mu, \sigma^2\right)}\left[-b_{t+1} \cdot e^{-c_{t+1} \cdot W_{t+1}}\right]\right\} \\
+& =\max _{x_t}\left\{\mathbb{E}_{Y_t \sim \mathcal{N}\left(\mu, \sigma^2\right)}\left[-b_{t+1} \cdot e^{-c_{t+1} \cdot\left(x_t \cdot\left(Y_t-r\right)+W_t \cdot(1+r)\right)}\right]\right\} \\
+& =\max _{x_t}\left\{-b_{t+1} \cdot e^{-c_{t+1} \cdot(1+r) \cdot W_t-c_{t+1} \cdot(\mu-r) \cdot x_t+c_{t+1}^2 \cdot \frac{\sigma^2}{2} \cdot x_t^2}\right\}
+\end{aligned}
+$$
+The partial derivative of term inside the $\max$ with respect to $x_t$ is 0 :
+$$
+\begin{gathered}
+-c_{t+1} \cdot(\mu-r)+\sigma^2 \cdot c_{t+1}^2 \cdot x_t^*=0 \\
+\Rightarrow x_t^*=\frac{\mu-r}{\sigma^2 \cdot c_{t+1}}
+\end{gathered}
+$$
+
+Next we substitute maximizing $x_t^*$ in Bellman Optimality Equation:
+$$
+V_t^*\left(W_t\right)=-b_{t+1} \cdot e^{-c_{t+1} \cdot(1+r) \cdot W_t-\frac{(\mu-r)^2}{2 \sigma^2}}
+$$
+But since $V_t^*\left(W_t\right)=-b_t \cdot e^{-c_t \cdot W_t}$, we can write:
+$$
+b_t=b_{t+1} \cdot e^{-\frac{(\mu-r)^2}{2 \sigma^2}}, c_t=c_{t+1} \cdot(1+r)
+$$
+We can calculate $b_{T-1}$ and $c_{T-1}$ from Reward $\frac{-e^{-a W_T}}{a}$
+$$
+V_{T-1}^*\left(W_{T-1}\right)=\max _{x_{T-1}}\left\{\mathbb{E}_{Y_{T-1} \sim \mathcal{N}\left(\mu, \sigma^2\right)}\left[\frac{-e^{-a W_T}}{a}\right]\right\}
+$$
+Substituting for $W_T$, we get:
+$$
+V_{T-1}^*\left(W_{T-1}\right)=\max _{x_{T-1}}\left\{\mathbb{E}_{Y_{T-1} \sim \mathcal{N}\left(\mu, \sigma^2\right)}\left[\frac{-e^{-a\left(x_{T-1} \cdot\left(Y_{T-1}-r\right)+W_{T-1} \cdot(1+r)\right)}}{a}\right]\right\}
+$$
+
+The expectation of this exponential (under normal distribution) is:
+$$
+V_{T-1}^*\left(W_{T-1}\right)=\frac{-e^{-\frac{(\mu-r)^2}{2 \sigma^2}-a \cdot(1+r) \cdot W_{T-1}}}{a}
+$$
+This gives us $b_{T-1}$ and $c_{T-1}$ as follows:
+$$
+\begin{gathered}
+b_{T-1}=\frac{e^{-\frac{(\mu-r)^2}{2 \sigma^2}}}{a} \\
+c_{T-1}=a \cdot(1+r)
+\end{gathered}
+$$
+Now we can unroll recursions for $b_t$ and $c_t$ :
+$$
+\begin{aligned}
+& b_t=\frac{e^{-\frac{(\mu-r)^2 \cdot(T-t)}{2 \sigma^2}}}{a} \\
+& c_t=a \cdot(1+r)^{T-t}
+\end{aligned}
+$$
+
+Substituting the solution for $c_{t+1}$ in (1) gives the Optimal Policy:
+$$
+\pi_t^*\left(W_t\right)=x_t^*=\frac{\mu-r}{\sigma^2 \cdot a \cdot(1+r)^{T-t-1}}
+$$
+Note optimal action at time $t$ does not depend on state $W_t$
+Hence, optimal policy $\pi_t^*(\cdot)$ is a constant deterministic policy function Substituting for $b_t$ and $c_t$ gives us the Optimal Value Function:
+$$
+V_t^*\left(W_t\right)=\frac{-e^{-\frac{(\mu-r)^2(T-t)}{2 \sigma^2}}}{a} \cdot e^{-a(1+r)^{T-t} \cdot W_t}
+$$
+
+
+\end{document}
