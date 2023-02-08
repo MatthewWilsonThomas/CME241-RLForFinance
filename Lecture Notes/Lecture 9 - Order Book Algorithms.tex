@@ -103,5 +103,63 @@ V_t^*\left(\left(P_t, R_t\right)\right)=R_t\left(P_t-\beta R_t\right)
 \end{gathered}
 $$
 So the solution for the case $\alpha \geq 2 \beta$ is to sell all $N$ shares at any one of the time steps $t=0, \ldots, T-1$ (and none in the other time steps) and the Optimal Expected Total Sale Proceeds $=N\left(P_0-\beta N\right)$
+For the case $\alpha<2 \beta$, differentiating w.r.t. $N_{T-2}$ and setting to 0 gives:
+$$
+(\alpha-2 \beta)\left(2 N_{T-2}^*-R_{T-2}\right)=0 \Rightarrow N_{T-2}^*=\frac{R_{T-2}}{2}
+$$
+Substitute $N_{T-2}^*$ in the expression for $V_{T-2}^*\left(\left(P_{T-2}, R_{T-2}\right)\right.$ :
+$$
+V_{T-2}^*\left(\left(P_{T-2}, R_{T-2}\right)\right)=R_{T-2} P_{T-2}-R_{T-2}^2\left(\frac{\alpha+2 \beta}{4}\right)
+$$
+Continuing backwards in time in this manner gives:
+$$
+\begin{gathered}
+N_t^*=\frac{R_t}{T-t} \\
+V_t^*\left(\left(P_t, R_t\right)\right)=R_t P_t-\frac{R_t^2}{2}\left(\frac{2 \beta+\alpha(T-t-1)}{T-t}\right)
+\end{gathered}
+$$
+
+We can see that going forward we ahve the optimal $N^*_t = \frac{N}{T}$ i.e. uniform over time. It makes sense since we had Price Impact and Market movement being linear and additive, i.e. they don't interact. 
+This is equivalent to minimizing $\sum_{t=1}^T N^2_t$. 
+This gives us the Optimal Expected Total Sale Proceeds as $NP_0 - \frac{N^2}{2}(\alpha + \frac{2\beta - \alpha}{T})$ i.e. an implementation shortfall of $\frac{N^2}{2}(\alpha + \frac{2\beta - \alpha}{T})$
+
+\paragraph*{Second Model (Bertsimas-Lo)}
+Bertsimas-Lo was the first paper on Optimal Trade Order Execution They assumed no risk-aversion, i.e. identity Utility function The first model in their paper is a special case of our simple Linear Impact model, with fully Permanent Impact (i.e., $\alpha=\beta$ )
+Next, Betsimas-Lo extended the Linear Permanent Impact model
+To include dependence on Serially-Correlated Variable $X_t$
+$$
+P_{t+1}=P_t-\left(\beta N_t+\theta X_t\right)+\epsilon_t, X_{t+1}=\rho X_t+\eta_t, Q_t=P_t-\left(\beta N_t+\theta X_t\right)
+$$
+$\epsilon_t$ and $\eta_t$ are i.i.d. (and mutually independent) with mean zero
+$X_t$ can be thought of as market factor affecting $P_t$ linearly
+Bellman Equation on Optimal VF and same approach as before yields:
+$$
+\begin{gathered}
+N_t^*=\frac{R_t}{T-t}+h(t, \beta, \theta, \rho) X_t \\
+V_t^*\left(\left(P_t, R_t, X_t\right)\right)=R_t P_t-\left(\text { quadratic in }\left(R_t, X_t\right)+\text { constant }\right)
+\end{gathered}
+$$
+Seral-correlation predictability $(\rho \neq 0)$ alters uniform-split strategy
+
+\paragraph*{Improved Model (LPT Model - Bertismas-Lo)}
+Bertsimas-Lo present a more realistic model called "LPT" Linear-Percentage Temporary Price Impact model features:
+- Geometric random walk: consistent with real data, \& avoids prices $\leq 0$
+- \% Price Impact $\frac{g_t\left(P_t, N_t\right)}{P_t}$ doesn't depend on $P_t$ (validated by real data)
+- Purely Temporary Price Impact
+$$
+P_{t+1}=P_t e^{Z_t}, X_{t+1}=\rho X_t+\eta_t, Q_t=P_t\left(1-\beta N_t-\theta X_t\right)
+$$
+$Z_t$ is a random variable with mean $\mu_Z$ and variance $\sigma_Z^2$
+With the same derivation as before, we get the solution:
+$$
+\begin{gathered}
+N_t^*=c_t^{(1)}+c_t^{(2)} R_t+c_t^{(3)} X_t \\
+V_t^*\left(\left(P_t, R_t, X_t\right)\right)=e^{\mu_Z+\frac{\sigma_Z^2}{2}} \cdot P_t \cdot\left(c_t^{(4)}+c_t^{(5)} R_t+c_t^{(6)} X_t\right. \\
+\left.+c_t^{(7)} R_t^2+c_t^{(8)} X_t^2+c_t^{(9)} R_t X_t\right)
+\end{gathered}
+$$
+
+
+
 
 \end{document}
