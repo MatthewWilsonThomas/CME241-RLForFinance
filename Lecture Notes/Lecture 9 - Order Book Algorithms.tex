@@ -1,0 +1,107 @@
+\documentclass[11pt]{article}
+
+% Load package
+\usepackage{lesson}
+
+% Set title and course name
+\settitle{Lecture 9}
+\setsubtitle{Limit Order Book Algorithms}
+\setcourse{CME241 - Reinforcement Learning for Finance}
+\setdate{08.02.2023}
+
+\begin{document}
+
+% Create title and add proper header for first page
+\maketitle
+\thispagestyle{first}
+We have the trading Order Book with the standard market terminology accompanying this. 
+
+We have standard Order Book activity, including:
+\begin{itemize}
+    \item Sell LO (potentially removes best bid)
+    \item Buy LO (potentially removes best sell)
+    \item Sell Market Order (will removes best bid)
+    \item Buy Market Order (will removes best sell)
+\end{itemize}
+
+Price Impact of a Market Order is the amount that a market order moves the Spread. Subsequent activity is part of the Order Book (OB) Dynamics.
+
+\section{Optimal Trade Execution}
+\paragraph*{Problem Statement}
+Time steps indexed by $t=0,1, \ldots, T$.
+$P_t$ denotes Best Bid Price at start of time step $t$.
+$N_t$ denotes number of shares sold in time step $t$.
+$R_t=N-\sum_{i=0}^{t-1} N_i=$ shares remaining to be sold at start of time step $t$.
+Note that $R_0=N, R_{t+1}=R_t-N_t$ for all $t<T, N_{T-1}=R_{T-1} \Rightarrow R_T=0$.
+Price Dynamics given by:
+$$
+P_{t+1}=f_t\left(P_t, N_t, \epsilon_t\right)
+$$
+where $f_t(\cdot)$ is an arbitrary function incorporating:
+\begin{itemize}
+    \item Permanent Price Impact of selling $N_t$ shares.
+    \item Impact-independent market-movement of Best Bid Price for time step $t$
+    \item $\epsilon_t$ denotes source of randomness in Best Bid Price 
+\end{itemize}market-movement
+Sales Proceeds in time step $t$ defined as:
+$$
+N_t \cdot Q_t=N_t \cdot\left(P_t-g_t\left(P_t, N_t\right)\right)
+$$
+where $g_t(\cdot)$ is an arbitrary func representing Temporary Price Impact Utility of Sales Proceeds function denoted as $U(\cdot)$.
+
+\paragraph*{MDP Formulation}
+This is a discrete-time, finite-horizon MDP.
+MDP Horizon is time $T$, meaning all states at time $T$ are terminal.
+Order of MDP activity in each time step $0 \leq t<T$ :
+\begin{itemize}
+    \item Observe State $s_t:=\left(P_t, R_t\right) \in \mathcal{S}_t$
+    \item Perform Action $a_t:=N_t \in \mathcal{A}_t$
+    \item Receive Reward $r_{t+1}:=U\left(N_t \cdot Q_t\right)=U\left(N_t \cdot\left(P_t-g_t\left(P_t, N_t\right)\right)\right)$
+    \item Experience Price Dynamics $P_{t+1}=f_t\left(P_t, N_t, \epsilon_t\right)$
+\end{itemize}
+Goal is to find a Policy $\pi_t^*\left(\left(P_t, R_t\right)\right)=N_t^*$ that maximizes:
+$$
+\mathbb{E}\left[\sum_{t=0}^{T-1} \gamma^t \cdot U\left(N_t \cdot Q_t\right)\right]
+$$ where $\gamma$ is MDP discount factor.
+
+\paragraph*{Model}
+We then have simple linear model with Linear Price Impact. We have i.i.d randomness with price dynamics $P_{t+1} = P_t - \alpha N_t + \epsilon_t$. Permanent price impact of $\alpha N_t$ and temporary price impact of $\beta N_t$. 
+
+\paragraph*{Solution}
+We can solve this model using Optimal Value Functions and the Bellman Equation. 
+Denote Value Function for policy $\pi$ as:
+$$
+V_t^\pi\left(\left(P_t, R_t\right)\right)=\mathbb{E}_\pi\left[\sum_{i=t}^T N_i\left(P_i-\beta \cdot N_i\right) \mid\left(P_t, R_t\right)\right]
+$$
+Denote Optimal Value Function as $V_t^*\left(\left(P_t, R_t\right)\right)=\max _\pi V_t^\pi\left(\left(P_t, R_t\right)\right)$
+Optimal Value Function satisfies the Bellman Eqn $(\forall 0 \leq t<T-1)$ :
+$$
+\begin{gathered}
+V_t^*\left(\left(P_t, R_t\right)\right)=\max _{N_t}\left\{N_t \cdot\left(P_t-\beta \cdot N_t\right)+\mathbb{E}\left[V_{t+1}^*\left(\left(P_{t+1}, R_{t+1}\right)\right)\right]\right\} \\
+V_{T-1}^*\left(\left(P_{T-1}, R_{T-1}\right)\right)=N_{T-1} \cdot\left(P_{T-1}-\beta \cdot N_{T-1}\right)=R_{T-1} \cdot\left(P_{T-1}-\beta \cdot R_{T-1}\right)
+\end{gathered}
+$$
+From the above, we can infer $V_{T-2}^*\left(\left(P_{T-2}, R_{T-2}\right)\right)$ as:
+$$
+\begin{gathered}
+\max _{N_{T-2}}\left\{N_{T-2}\left(P_{T-2}-\beta N_{T-2}\right)+\mathbb{E}\left[R_{T-1}\left(P_{T-1}-\beta R_{T-1}\right)\right]\right\} \\
+=\max _{N_{T-2}}\left\{N_{T-2}\left(P_{T-2}-\beta N_{T-2}\right)+\mathbb{E}\left[\left(R_{T-2}-N_{T-2}\right)\left(P_{T-1}-\beta\left(R_{T-2}-N_{T-2}\right)\right)\right]\right\}
+\end{gathered}
+$$
+$$
+=\max _{N_{T-2}}\left\{R_{T-2} P_{T-2}-\beta R_{T-2}^2+(\alpha-2 \beta)\left(N_{T-2}^2-N_{T-2} R_{T-2}\right)\right\}
+$$
+For the case $\alpha \geq 2 \beta$, we have the trivial solution: $N_{T-2}^*=0$ or $R_{T-2}$ Substitute $N_{T-2}^*$ in the expression for $V_{T-2}^*\left(\left(P_{T-2}, R_{T-2}\right)\right)$ :
+$$
+V_{T-2}^*\left(\left(P_{T-2}, R_{T-2}\right)\right)=R_{T-2}\left(P_{T-2}-\beta R_{T-2}\right)
+$$
+Continuing backwards in time in this manner gives:
+$$
+\begin{gathered}
+N_t^*=0 \text { or } R_t \\
+V_t^*\left(\left(P_t, R_t\right)\right)=R_t\left(P_t-\beta R_t\right)
+\end{gathered}
+$$
+So the solution for the case $\alpha \geq 2 \beta$ is to sell all $N$ shares at any one of the time steps $t=0, \ldots, T-1$ (and none in the other time steps) and the Optimal Expected Total Sale Proceeds $=N\left(P_0-\beta N\right)$
+
+\end{document}
