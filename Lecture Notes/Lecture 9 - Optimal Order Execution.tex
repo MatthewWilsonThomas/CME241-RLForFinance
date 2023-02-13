@@ -5,7 +5,7 @@
 
 % Set title and course name
 \settitle{Lecture 9}
-\setsubtitle{Limit Order Book Algorithms}
+\setsubtitle{Optimal Order Execution}
 \setcourse{CME241 - Reinforcement Learning for Finance}
 \setdate{08.02.2023}
 
@@ -159,7 +159,10 @@ V_t^*\left(\left(P_t, R_t, X_t\right)\right)=e^{\mu_Z+\frac{\sigma_Z^2}{2}} \cdo
 \end{gathered}
 $$
 
+\paragraph*{Summary of Optimal Execution}
+In the above formulation we have ignored many aspects of the problem. Including Risk-Aversion and the Risk of Uncertain Proceeds. Thus in many cases you adjust the goal for reducing the Variance of Proceeds. 
+There are also many frictions we are not including, i.e. Discrete Prices/Sizes, Constraints on Trading, Fees.
 
-
+Thus we can generate a simplified simulator for OB Dynamics, i.e. a Market-Data-Learnt sampler with Cross-Asset Market Impact. 
 
 \end{document}
