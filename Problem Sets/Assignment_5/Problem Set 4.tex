@@ -1,0 +1,62 @@
+\documentclass[11pt]{article}
+
+% Load package
+\usepackage{../lesson}
+\usepackage{hyperref}
+\setcounter{MaxMatrixCols}{20}
+
+% Set title and course name
+\settitle{Problem Set 5}
+\setsubtitle{Optimal Execution}
+\setcourse{CME241 - Reinforcement Learning for Finance}
+\setdate{Due: 13.02.2023}
+
+\begin{document}
+
+% Create title and add proper header for first page
+\maketitle
+\thispagestyle{first}
+
+\section*{Problem 1}
+
+\section*{Problem 3}
+Solution at \href{https://github.com/MatthewWilsonThomas/CME241-RLForFinance/blob/master/Problem%20Sets/Assignment_5/Q3-OrderBookDynamics.py}{code}
+
+\section*{Problem 4}
+\begin{align}
+    V_T(P_T, X_T, N_T) &= \max_{N_{t; t=T}}\{ Q_t\cdot N_t \} = R_TP_T(1-\beta R_T - \theta X_T) \\
+    \text{Solving for $N^*_T$ gives:} \\
+    N*_T &= R_T \\
+    \text{Extending to $T-1$:} \\
+    V_{T-1}(P_{T-1}, X_{T-1}, N_{T-1}) &= \max_{N_{t; t=T-1}} \{ Q_t\cdot N_t + V_{t+1}\}\\
+    &= \max_{N_{t; t=T-1}}\{N_tP_t(1-\beta N_t - \theta X_t) + \E{P_TR_T(1-\beta R_T - \theta X_T)} \} \\
+    R_T &= R_{T-1} - N_{T-1}; P_T = P_{T-1}e^{Z_t}; X_T = \rho X_{T-1} + \eta_{T-1} \\
+    &= \max_{N_{t; t=T-1}}\{N_tP_t(1-\beta N_t - \theta X_t) \\
+    &\quad+ \E{P_{T-1}e^{Z_{T-1}}(R_{T-1} - N_{T-1})(1-\beta (R_{T-1} - N_{T-1}) - \theta X_{T-1} + \eta_{T-1})} \} \\
+    &= \max_{N_{t; t=T-1}}\{N_tP_t(1-\beta N_t - \theta X_t) \\
+    &\quad+ q P_{T-1} (R_{T-1} - N_{T-1})(1-\beta (R_{T-1} - N_{T-1}) - \theta X_{T-1})\} \\
+    q& = e^{\mu_Z + \frac{\sigma^2_Z}{2}} \\
+    \text{Solving for $N^*_{T-1}$ gives:} \\
+    N^*_{T-1} &= \delta_x X_{T-1} + \delta \\
+    \delta_x &= \frac{\theta(\rho q - 1)}{2\beta(1 + q)} \\
+    \delta &= \frac{\theta(1 - q)}{2\beta(1 + q)} \\
+\end{align}
+\begin{align}
+    \text{This gives the Value Function as:} \\
+    V_{T-1}(P_{T-1}, X_{T-1}, N_{T-1}) &= qP_{T-1}[a_1 + b_1X_{T-1} + c_1X_{T-1}^2 + d_1 R_{T-1}X_{T-1} + e_1R_{T-1} + f_1 R^2_{T-1}] \\
+    a_1 &= \delta - \beta \delta^2 - q\delta - q\beta \delta^2\\
+    b_1 &= \delta_x - 2\beta \delta \delta_x - \theta\delta - 2q\beta \delta\delta_x  - q\delta_x + q\theta\delta\\
+    c_1 &= -\beta\delta_x^2\\
+    d_1 &= q\beta\delta_x - q\theta + q\beta\delta_x\\
+    e_1 &= q + 2q\beta\delta\\
+    f_1 &= -q\beta\\
+\end{align}
+This recursion can be extended backwards to completely characterize the value function at any time step.
+
+Implementation at \href{https://github.com/MatthewWilsonThomas/CME241-RLForFinance/blob/master/Problem%20Sets/Assignment_5/Q4-LPT.py}{code}
+
+
+\newpage
+\section{!@}
+\end{document}
+
