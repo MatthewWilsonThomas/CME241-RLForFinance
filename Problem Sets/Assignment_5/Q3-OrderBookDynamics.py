@@ -12,8 +12,8 @@ from typing import (Callable, Dict, Iterable, Generic, Sequence, Tuple,
                     Mapping, TypeVar, Set)
 
 S = OrderBook
-
-class OrderBookDynamics(MarkovProcess[State[S]]):
+A = PriceSizePairs
+class OrderBookDynamics(MarkovProcess[State[S], A]):
 
     def transition(self, state: NonTerminal[S]) -> Distribution[NonTerminal[S]]:
         """Implement the transition probability for the Order Book 

@@ -19,8 +19,30 @@
 
 \section*{Problem 1}
 
+We have to minimize 
+\begin{align}
+g(S)&=p \cdot g_1(S)+h \cdot g_2(S)\\
+&= p\int_S^{\infty}(x-S) \cdot f(x) \cdot d x + h\int_{-\infty}^S(S-x) \cdot f(x) \cdot d x
+\end{align}
+To minimize, we take the derivative with respect to $S$ and use the Leibnitz rule to differentiate a definite integral.
+\begin{align}
+\frac{dg(S)}{dS}&=p \cdot g_1'(S)+h \cdot g_2'(S)\\
+&= p\int_S^{\infty}- f(x) \cdot d x + h\int_{-\infty}^Sf(x) \cdot d x\\
+&= -p(1-F(S)) + h(F(S))\\
+&= -p + (h+p)F(S)
+\end{align}
+Setting the derivative to zero, we get 
+$$
+S^* = F^{-1}(\frac{p}{h+p})
+$$
+where $F$ is the CDF of the demand function.
+\newline
+
+In terms of options, we are minimizing the expected future payoff from options underlying a stock whose price is given by the distribution $f$ and the strike price of the options are $S$. $g_1(S)$ represents a call option and $g_2(S)$ represents a put. Since we are minimizing the expected future payoff (not discounted), our portfolio can be seen to be comprised of short poisitions in $p$ calls and $h$ puts.
+
+
 \section*{Problem 3}
-Solution at \href{https://github.com/MatthewWilsonThomas/CME241-RLForFinance/blob/master/Problem%20Sets/Assignment_5/Q3-OrderBookDynamics.py}{code}
+Solution at \href{https://github.com/MatthewWilsonThomas/CME241-RLForFinance/blob/master/Problem%20Sets/Assignment_5/Q3-OrderBookDynamics.py}{Code}
 
 \section*{Problem 4}
 \begin{align}
@@ -55,8 +77,4 @@ This recursion can be extended backwards to completely characterize the value fu
 
 Implementation at \href{https://github.com/MatthewWilsonThomas/CME241-RLForFinance/blob/master/Problem%20Sets/Assignment_5/Q4-LPT.py}{code}
 
-
-\newpage
-\section{!@}
 \end{document}
-
