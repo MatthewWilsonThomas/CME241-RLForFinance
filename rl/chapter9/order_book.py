@@ -10,9 +10,7 @@ class DollarsAndShares:
     dollars: float
     shares: int
 
-
 PriceSizePairs = Sequence[DollarsAndShares]
-
 
 @dataclass(frozen=True)
 class OrderBook:

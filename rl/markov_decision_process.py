@@ -88,7 +88,6 @@ class MarkovDecisionProcess(ABC, Generic[S, A]):
         '''Simulate this MDP with the given policy, yielding the
         sequence of (states, action, next state, reward) 4-tuples
         encountered in the simulation trace.
-
         '''
         state: State[S] = start_states.sample()
 
