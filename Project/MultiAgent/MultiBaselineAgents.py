@@ -16,7 +16,7 @@ class MultiRandomAgent(Agent):
                     AgentID: int, 
                     seed: int = None):
         self.AgentID: str = str(AgentID)
-        self.action_space = deepcopy(env.action_spaces[self.AgentID])
+        self.action_space = deepcopy(env.action_space[self.AgentID])
         self.action_space.seed(seed)
         self.num_trajectories = env.num_trajectories
 

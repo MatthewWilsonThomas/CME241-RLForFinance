@@ -7,11 +7,10 @@ from torch.optim.lr_scheduler import StepLR, _LRScheduler
 from tqdm import tqdm
 
 from mbt_gym.agents.Agent import Agent
-from mbt_gym.gym.TradingEnvironment import TradingEnvironment
-from mbt_gym.gym.MultiAgentTradingEnvironment import MultiAgentTradingEnvironment
+from MultiAgent.MultiAgentTradingEnvironment import MultiAgentTradingEnvironment
 from mbt_gym.gym.helpers.generate_trajectory import generate_trajectory
 
-class PolicyGradientAgent(Agent):
+class PolicyGradientMultiAgent(Agent):
     def __init__(
         self,
         policy: torch.nn.Module,
@@ -23,8 +22,8 @@ class PolicyGradientAgent(Agent):
     ):
         self.AgentID = str(AgentID)
         self.env = env or MultiAgentTradingEnvironment()
-        self.input_size = env.observation_spaces.get(self.AgentID).shape[0]
-        self.action_size = env.action_spaces.get(self.AgentID).shape[0]
+        self.input_size = env.observation_space[self.AgentID].shape[0]
+        self.action_size = env.action_space[self.AgentID].shape[0]
         assert self.input_size == policy[0].in_features
         self.policy_net = policy
         self.action_std = action_std

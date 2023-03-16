@@ -52,12 +52,13 @@ def generate_multiagent_trajectory(env: MultiAgentTradingEnvironment,
     obs_space_dim = env.observation_space[agent_names[0]].shape[0]
     action_space_dim = env.action_space[agent_names[0]].shape[0]
 
-    observations = np.zeros((env.num_trajectories, obs_space_dim, env.n_steps + 1))
-    actions = np.zeros((env.num_trajectories, action_space_dim, env.n_steps))
-    rewards = np.zeros((env.num_trajectories, 1, env.n_steps))
+    observations = {agent_id: np.zeros((env.num_trajectories, obs_space_dim, env.n_steps + 1)) for agent_id in agents.keys()}
+    actions = {agent_id: np.zeros((env.num_trajectories, action_space_dim, env.n_steps)) for agent_id in agents.keys()}
+    rewards = {agent_id: np.zeros((env.num_trajectories, 1, env.n_steps)) for agent_id in agents.keys()}
 
     obs = env.reset()
-    observations[:, :, 0] = obs[agent_names[0]]
+    for agent_id in agents.keys():
+        observations[agent_id][:, :, 0] = obs[agent_id]
     count = 0
     action: Dict[str, np.ndarray] = {}
 
@@ -66,10 +67,12 @@ def generate_multiagent_trajectory(env: MultiAgentTradingEnvironment,
             action[agent_id] = agents[agent_id].get_action(obs[agent_id])
 
         obs, reward, done, _ = env.step(action)
-        actions[:, :, count] = action[agent_names[0]]
-        observations[:, :, count + 1] = obs[agent_names[0]]
-        rewards[:, :, count] = reward[agent_names[0]].reshape(-1, 1)
-        if (env.num_trajectories > 1 and done[agent_names[0]][0]) or (env.num_trajectories == 1 and done[agent_names[0]]):
+        for agent_id in agents.keys():
+            actions[agent_id][:, :, count] = action[agent_id]
+            observations[agent_id][:, :, count + 1] = obs[agent_id]
+            rewards[agent_id][:, :, count] = reward[agent_id].reshape(-1, 1)
+
+        if (env.num_trajectories > 1 and done[agent_id][0]) or (env.num_trajectories == 1 and done[agent_id]):
             break
         count += 1
 

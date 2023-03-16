@@ -66,52 +66,59 @@ def plot_trajectory(env: gym.Env, agent: Agent, seed: int = None):
     ax4.legend()
     plt.show()
 
-def plot_multiagent_trajectory(env: MultiAgentTradingEnvironment, agent: Dict[str, Agent], agent_names: List[str],  seed: int = None):
+def plot_multiagent_trajectory(env: MultiAgentTradingEnvironment, agents: Dict[str, Agent], agent_names: List[str],  seed: int = None):
     timestamps = get_timestamps(env)
-    observations, actions, rewards= generate_multiagent_trajectory(env, agent, seed)
-    action_dim = actions.shape[1]
+    observations, actions, rewards = generate_multiagent_trajectory(env, agents, seed)
+    
     colors = ["r", "k", "b", "g"]
-    rewards = np.squeeze(rewards, axis=1)
-    cum_rewards = np.cumsum(rewards, axis=-1)
-    cash_holdings = observations[:, CASH_INDEX, :]
-    inventory = observations[:, INVENTORY_INDEX, :]
-    asset_prices = observations[:, ASSET_PRICE_INDEX, :]
-    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(20, 10))
+    fig, ((ax1, ax2), (ax3, _)) = plt.subplots(2, 2, figsize=(20, 10))
     ax3a = ax3.twinx()
     ax1.title.set_text("cum_rewards")
     ax2.title.set_text("asset_prices")
     ax3.title.set_text("inventory and cash holdings")
-    ax4.title.set_text("Actions")
-    for i in range(env.num_trajectories):
-        traj_label = f" trajectory {i}" if env.num_trajectories > 1 else ""
-        ax1.plot(timestamps[1:], cum_rewards[i, :])
-        ax2.plot(timestamps, asset_prices[i, :])
+    # ax4.title.set_text("Actions")
+    
+    cash_holdings = {}
+    inventory = {}
+    asset_prices = {}
+    cum_rewards = {}
+
+    for agent in agents:
+        cash_holdings[agent] = np.mean(observations[agent][:, CASH_INDEX, :], axis = 0)
+        inventory[agent] = np.mean(observations[agent][:, INVENTORY_INDEX, :], axis = 0)
+        asset_prices[agent] = np.mean(observations[agent][:, ASSET_PRICE_INDEX, :], axis = 0)
+        rewards[agent] = np.mean(np.squeeze(rewards[agent], axis=1), axis = 0)
+        cum_rewards[agent] = np.cumsum(rewards[agent], axis=-1)
+        
+    for i, agent in enumerate(agents):
+        ax1.plot(timestamps[1:], cum_rewards[agent][:])
+        ax2.plot(timestamps, asset_prices[agent][:])
         ax3.plot(
             timestamps,
-            inventory[i, :],
-            label=f"inventory" + traj_label,
+            inventory[agent][:],
+            label=f"Inventory: " + agent,
             color="r",
-            alpha=(i + 1) / (env.num_trajectories + 1),
+            alpha= i / len(agent_names),
         )
         ax3a.plot(
             timestamps,
-            cash_holdings[i, :],
-            label=f"cash holdings" + traj_label,
+            cash_holdings[agent][:],
+            label=f"Cash Holdings: " + agent,
             color="b",
-            alpha=(i + 1) / (env.num_trajectories + 1),
+            alpha= i / len(agent_names),
         )
-        for j in range(action_dim):
-            ax4.plot(
-                timestamps[0:-1],
-                actions[i, j, :],
-                label=f"Action {j}" + traj_label,
-                color=colors[j],
-                alpha=(i + 1) / (env.num_trajectories + 1),
-                )
+        # print(actions[agent].shape)
+        # for j in range(actions[agent].shape[1]):
+        #     ax4.plot(
+        #         timestamps[0:-1],
+        #         actions[agent][0, j, :],
+        #         label=f"Action {j}: " + agent,
+        #         color=colors[j],
+        #         alpha=(i + 1) / (env.num_trajectories + 1),
+        #         )
     ax3.legend()
-    ax4.legend()
+    # ax4.legend()
     plt.show()
-
 
 def plot_stable_baselines_actions(model, env):
     timestamps = get_timestamps(env)

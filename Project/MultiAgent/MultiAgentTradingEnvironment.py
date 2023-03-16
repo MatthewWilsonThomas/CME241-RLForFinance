@@ -63,7 +63,7 @@ class MultiAgentTradingEnvironment(TradingEnvironment):
         
         # MultiAgent Specific info
         self.agents = [str(agent) for agent in range(num_agents)]
-        self.possible_agents = self.agents[:]
+        # self.possible_agents = self.agents[:]
 
         self.terminal_time = terminal_time
         self.num_trajectories = num_trajectories
@@ -100,8 +100,8 @@ class MultiAgentTradingEnvironment(TradingEnvironment):
         }
 
         self.state: Dict[str, np.ndarray] = {}
-        initial_cash: Dict[str, float] = {}
-        initial_inventory: Dict[str, Union[int, Tuple[float, float]]] = {}
+        self.initial_cash: Dict[str, float] = {}
+        self.initial_inventory: Dict[str, Union[int, Tuple[float, float]]] = {}
 
         self.half_spread = half_spread
         self.info_calculator = info_calculator
