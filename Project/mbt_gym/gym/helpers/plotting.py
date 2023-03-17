@@ -71,12 +71,12 @@ def plot_multiagent_trajectory(env: MultiAgentTradingEnvironment, agents: Dict[s
     observations, actions, rewards = generate_multiagent_trajectory(env, agents, seed)
     
     colors = ["r", "k", "b", "g"]
-    fig, ((ax1, ax2), (ax3, _)) = plt.subplots(2, 2, figsize=(20, 10))
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(20, 10))
     ax3a = ax3.twinx()
-    ax1.title.set_text("cum_rewards")
-    ax2.title.set_text("asset_prices")
-    ax3.title.set_text("inventory and cash holdings")
-    # ax4.title.set_text("Actions")
+    ax1.title.set_text("Cumulative Rewards")
+    ax2.title.set_text("Asset Prices")
+    ax3.title.set_text("Inventory")
+    ax4.title.set_text("Cash Holdings")
     
     cash_holdings = {}
     inventory = {}
@@ -91,33 +91,21 @@ def plot_multiagent_trajectory(env: MultiAgentTradingEnvironment, agents: Dict[s
         cum_rewards[agent] = np.cumsum(rewards[agent], axis=-1)
         
     for i, agent in enumerate(agents):
-        ax1.plot(timestamps[1:], cum_rewards[agent][:])
+        ax1.plot(timestamps[1:], cum_rewards[agent][:], label=f"Cumulative Reward: " + agent)
         ax2.plot(timestamps, asset_prices[agent][:])
         ax3.plot(
             timestamps,
             inventory[agent][:],
             label=f"Inventory: " + agent,
-            color="r",
-            alpha= i / len(agent_names),
         )
-        ax3a.plot(
+        ax4.plot(
             timestamps,
             cash_holdings[agent][:],
             label=f"Cash Holdings: " + agent,
-            color="b",
-            alpha= i / len(agent_names),
         )
-        # print(actions[agent].shape)
-        # for j in range(actions[agent].shape[1]):
-        #     ax4.plot(
-        #         timestamps[0:-1],
-        #         actions[agent][0, j, :],
-        #         label=f"Action {j}: " + agent,
-        #         color=colors[j],
-        #         alpha=(i + 1) / (env.num_trajectories + 1),
-        #         )
+    ax1.legend()
     ax3.legend()
-    # ax4.legend()
+    ax4.legend()
     plt.show()
 
 def plot_stable_baselines_actions(model, env):

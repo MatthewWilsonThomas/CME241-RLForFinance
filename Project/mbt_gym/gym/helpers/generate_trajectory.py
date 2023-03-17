@@ -42,38 +42,54 @@ def generate_trajectory(env: gym.Env, agent: Agent, seed: int = None, include_lo
 
 
 def generate_multiagent_trajectory(env: MultiAgentTradingEnvironment, 
-                                agents: Dict[str, Agent], 
-                                seed: int = None):
+                                agents: Dict[str, Agent] or None, 
+                                seed: int = None,
+                                include_log_probs: bool = False):
 
     if seed is not None:
         env.seed(seed)
 
-    agent_names = [key for key in agents.keys()]
+    agent_names = env.agents
+
     obs_space_dim = env.observation_space[agent_names[0]].shape[0]
     action_space_dim = env.action_space[agent_names[0]].shape[0]
 
-    observations = {agent_id: np.zeros((env.num_trajectories, obs_space_dim, env.n_steps + 1)) for agent_id in agents.keys()}
-    actions = {agent_id: np.zeros((env.num_trajectories, action_space_dim, env.n_steps)) for agent_id in agents.keys()}
-    rewards = {agent_id: np.zeros((env.num_trajectories, 1, env.n_steps)) for agent_id in agents.keys()}
+    observations = {agent_id: np.zeros((env.num_trajectories, obs_space_dim, env.n_steps + 1)) for agent_id in agent_names}
+    actions = {agent_id: np.zeros((env.num_trajectories, action_space_dim, env.n_steps)) for agent_id in agent_names}
+    rewards = {agent_id: np.zeros((env.num_trajectories, 1, env.n_steps)) for agent_id in agent_names}
+    if include_log_probs:
+        log_probs = {agent_id: torch.zeros((env.num_trajectories, action_space_dim, env.n_steps)) for agent_id in agent_names}
 
     obs = env.reset()
-    for agent_id in agents.keys():
+    for agent_id in agent_names:
         observations[agent_id][:, :, 0] = obs[agent_id]
+
     count = 0
     action: Dict[str, np.ndarray] = {}
+    log_prob: Dict[str, np.ndarray] = {}
 
     while True:
-        for agent_id in agents.keys():
-            action[agent_id] = agents[agent_id].get_action(obs[agent_id])
+        for agent_id in agent_names:
+            if include_log_probs:
+                action[agent_id], log_prob[agent_id] = agents[agent_id].get_action(obs[agent_id], include_log_probs=True)
+            else:
+                action[agent_id] = agents[agent_id].get_action(obs[agent_id])
 
         obs, reward, done, _ = env.step(action)
-        for agent_id in agents.keys():
+        for agent_id in agent_names:
             actions[agent_id][:, :, count] = action[agent_id]
             observations[agent_id][:, :, count + 1] = obs[agent_id]
             rewards[agent_id][:, :, count] = reward[agent_id].reshape(-1, 1)
+
+            if include_log_probs:
+                log_probs[agent_id][:, :, count] = log_prob[agent_id]
 
         if (env.num_trajectories > 1 and done[agent_id][0]) or (env.num_trajectories == 1 and done[agent_id]):
             break
         count += 1
 
-    return observations, actions, rewards
+
+    if include_log_probs:
+        return observations, actions, rewards, log_probs
+    else:
+        return observations, actions, rewards

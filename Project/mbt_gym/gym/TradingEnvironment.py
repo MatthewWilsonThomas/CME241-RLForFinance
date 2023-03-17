@@ -43,7 +43,7 @@ class TradingEnvironment(gym.Env):
         action_type: str = "limit",
         initial_cash: float = 0.0,
         initial_inventory: Union[int, Tuple[float, float]] = 0,  # Either a deterministic initial inventory, or a tuple
-        max_inventory: int = 10_000,  # representing the mean and variance of it.
+        max_inventory: int = 10000000,  # representing the mean and variance of it.
         max_cash: float = None,
         max_stock_price: float = None,
         max_depth: float = None,

@@ -47,7 +47,7 @@ class MultiAgentTradingEnvironment(TradingEnvironment):
         fill_probability_model: FillProbabilityModel = None,
         price_impact_model: PriceImpactModel = None,
         action_type: str = "limit",
-        max_inventory: int = 10_000_000,  # representing the mean and variance of it.
+        max_inventory: int = 10000000,  # representing the mean and variance of it.
         max_cash: float = None,
         max_stock_price: float = None,
         max_depth: float = None,

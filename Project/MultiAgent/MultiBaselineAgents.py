@@ -4,15 +4,21 @@ import gymnasium as gym
 import numpy as np
 import warnings
 from scipy.linalg import expm
-from typing import Union, Callable, Tuple
+from typing import Union, Callable, Tuple, Dict
 
 import torch
 from torch.optim.lr_scheduler import StepLR, _LRScheduler
+import torch.nn as nn
+import torch.optim as optim
+import torch.nn.functional as F
+
 from tqdm import tqdm
+from typing import Callable
 
 from mbt_gym.agents.Agent import Agent
 from mbt_gym.gym.TradingEnvironment import TradingEnvironment, INVENTORY_INDEX, TIME_INDEX, BID_INDEX, ASK_INDEX
 from MultiAgent.MultiAgentTradingEnvironment import MultiAgentTradingEnvironment
+from mbt_gym.gym.helpers.generate_trajectory import generate_multiagent_trajectory
 from mbt_gym.rewards.RewardFunctions import CjMmCriterion, PnL
 from mbt_gym.stochastic_processes.price_impact_models import PriceImpactModel, TemporaryAndPermanentPriceImpact
 
@@ -54,22 +60,47 @@ class FixedSpreadMultiAgent(Agent):
         action = np.array([[self.half_spread - self.offset, self.half_spread + self.offset]])
         return np.repeat(action, self.env.num_trajectories, axis=0)
     
-class PolicyGradientAgent(Agent):
+# Possible Policy Gradient Agents
+class ActorNet(nn.Module):
+    def __init__(self, state_size, action_size, hidden_size):
+        super(ActorNet, self).__init__()
+        self.dense_layer_1 = nn.Linear(state_size, hidden_size)
+        self.dense_layer_2 = nn.Linear(hidden_size, hidden_size)
+        self.output = nn.Linear(hidden_size, action_size)
+    
+    def forward(self, x):
+        x = torch.clamp(x,-1.1,1.1)
+        x = F.relu(self.dense_layer_1(x))
+        x = F.relu(self.dense_layer_2(x))
+        return F.softmax(self.output(x),dim=-1) #-1 to take softmax of last dimension
+    
+class ValueFunctionNet(nn.Module):
+    def __init__(self, state_size, hidden_size):
+        super(ValueFunctionNet, self).__init__()
+        self.dense_layer_1 = nn.Linear(state_size, hidden_size)
+        self.dense_layer_2 = nn.Linear(hidden_size, hidden_size)
+        self.output = nn.Linear(hidden_size, 1)
+    
+    def forward(self, x):
+        x = torch.clamp(x,-1.1,1.1)
+        x = F.relu(self.dense_layer_1(x))
+        x = F.relu(self.dense_layer_2(x))
+        return self.output(x)
+class PolicyGradientMultiAgent(Agent):
     def __init__(
         self,
-        agent_id: int,
-        policy: torch.nn.Module,
+        AgentID: float = 1,
         action_std: Union[float, Callable] = 0.01,
         optimizer: torch.optim.Optimizer = None,
         env: gym.Env = None,
         lr_scheduler: _LRScheduler = None,
     ):
-        self.AgentID: str = str(agent_id)
-        self.env = env or MultiAgentTradingEnvironment()
+        self.AgentID: str = str(AgentID)
+        self.env = env
         self.input_size = env.observation_space[self.AgentID].shape[0]
         self.action_size = env.action_space[self.AgentID].shape[0]
-        assert self.input_size == policy[0].in_features
-        self.policy_net = policy
+        self.policy_net = ActorNet(state_size=self.input_size, action_size=self.action_size, hidden_size=self.input_size*self.action_size)
+
         self.action_std = action_std
         self.optimizer = optimizer or torch.optim.SGD(self.policy_net.parameters(), lr=1e-1)
         self.lr_scheduler = lr_scheduler or StepLR(self.optimizer, step_size=1, gamma=0.995)
@@ -91,12 +122,13 @@ class PolicyGradientAgent(Agent):
             return action.detach().numpy(), log_probs
         return action.detach().numpy()
 
-    def train(self, num_epochs: int = 1, reporting_freq: int = 100):
+    def train(self, agents: Dict[str, Agent], num_epochs: int = 1, reporting_freq: int = 100):
         learning_losses = []
         learning_rewards = []
         self.proportion_completed = 0.0
-        for epoch in tqdm(range(num_epochs)):
-            observations, actions, rewards, log_probs = generate_trajectory(self.env, self, include_log_probs=True)
+        for epoch in range(num_epochs):
+            observations, actions, rewards, log_probs = generate_multiagent_trajectory(self.env, agents, include_log_probs=True)
+            observations, actions, rewards, log_probs = observations[self.AgentID], actions[self.AgentID], rewards[self.AgentID], log_probs[self.AgentID]
             learning_rewards.append(rewards.mean())
             rewards = torch.tensor(rewards)
             future_rewards = self._calculate_future_rewards(rewards)
@@ -104,10 +136,10 @@ class PolicyGradientAgent(Agent):
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
-            if epoch % reporting_freq == 0:
-                tqdm.write(str(loss.item()))
+            # if epoch % reporting_freq == 0:
+            #     tqdm.write(str(loss.item()))
             learning_losses.append(loss.item())
-            self.proportion_completed += 1 / (num_epochs - 1)
+            self.proportion_completed += 1 / (num_epochs) # num_epochs - 1
             self.lr_scheduler.step()
         return learning_losses, learning_rewards
 
