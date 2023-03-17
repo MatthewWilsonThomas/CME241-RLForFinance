@@ -222,7 +222,6 @@ class MultiAgentTradingEnvironment(TradingEnvironment):
             volume = action * self.step_size
             self.state[agent][:, CASH_INDEX] -= np.squeeze(volume * execution_price)
             self.state[agent][:, INVENTORY_INDEX] += np.squeeze(volume)
-        self._clip_inventory_and_cash()
         self.state[agent][:, TIME_INDEX] += self.step_size
 
     def _clip_inventory_and_cash(self):
@@ -232,6 +231,9 @@ class MultiAgentTradingEnvironment(TradingEnvironment):
             )
             self.state[agent][:, CASH_INDEX] = self._clip(self.state[agent][:, CASH_INDEX], -self.max_cash, self.max_cash, cash_flag=True)
 
+    def _clip(self, not_clipped: float, min: float, max: float, cash_flag: bool) -> float:
+        return not_clipped
+    
     def initial_state(self, AgentID: str, initial_cash, intial_inventory) -> np.ndarray:
         scalar_initial_state = np.array([[initial_cash, 0, 0.0]])
         initial_state = np.repeat(scalar_initial_state, self.num_trajectories, axis=0)

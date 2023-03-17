@@ -132,7 +132,7 @@ class TradingEnvironment(gym.Env):
         return next_state.copy(), rewards, dones, infos
 
     def _get_max_cash(self) -> float:
-        return self.n_steps * self.max_stock_price  # TODO: make this a tighter bound
+        return self.n_steps * self.max_stock_price 
 
     def _get_max_depth(self) -> float:
         if self.fill_probability_model is not None:
